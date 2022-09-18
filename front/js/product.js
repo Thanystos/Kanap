@@ -76,38 +76,46 @@ function showProduct(product) {
             </button>
         </div>
     `
+
+    const colorsElt = productArticleElt.querySelector('#colors');
+    const quantityElt = productArticleElt.querySelector('#quantity');
+
     colors.forEach((color) => {
-        productArticleElt.querySelector('#colors').appendChild(getColor(color));
+        colorsElt.appendChild(getColor(color));
     })
     item.appendChild(productArticleElt);
 
     function getColor(color) {
-        const colorsElt = document.createElement('option');
-        colorsElt.value = color;
-        colorsElt.innerHTML =
+        const optionElt = document.createElement('option');
+        optionElt.value = color;
+        optionElt.innerHTML =
             `
                 ${color}
             `
-        return colorsElt;
+        return optionElt;
     }
 
     productArticleElt.querySelector('#addToCart').addEventListener('click', () => {
-        if(((productArticleElt.querySelector('#colors').value) != '') 
-        && ((productArticleElt.querySelector('#quantity').value > 0) && (productArticleElt.querySelector('#quantity').value <= 100))) {
-            if((cart.get(`${_id}_${productArticleElt.querySelector('#colors').value}`) != undefined) && (cart.get(`${_id}_${productArticleElt.querySelector('#colors').value}`).color == productArticleElt.querySelector('#colors').value)) {
-                cart.set(`${_id}_${cart.get(`${_id}_${productArticleElt.querySelector('#colors').value}`).color}`, {id: _id, color: productArticleElt.querySelector('#colors').value, quantity: parseInt(cart.get(`${_id}_${productArticleElt.querySelector('#colors').value}`).quantity, 10) + parseInt(productArticleElt.querySelector('#quantity').value, 10)});
-                console.log('Map avant LS: ');
-                console.log(cart);
+        if(((colorsElt.value) != '') && ((quantityElt.value > 0) && (quantityElt.value <= 100))) {
+            if((cart.get(`${_id}_${colorsElt.value}`) != undefined) && (cart.get(`${_id}_${colorsElt.value}`).color == colorsElt.value)) {
+                if((parseInt(cart.get(`${_id}_${colorsElt.value}`).quantity, 10) + parseInt(quantityElt.value, 10)) > 100) {
+                    alert('Il n\'est pas possible de commander plus de 100 produits identiques !');
+                }
+                else {
+                    cart.set(`${_id}_${cart.get(`${_id}_${colorsElt.value}`).color}`, {id: _id, color: colorsElt.value, quantity: parseInt(cart.get(`${_id}_${colorsElt.value}`).quantity, 10) + parseInt(quantityElt.value, 10)});
+                    console.log('Map avant LS: ');
+                    console.log(cart);
+                    alert('Article(s) ajouté(s) au panier !');
+                }
             }
             else {
-                cart.set(`${_id}_${productArticleElt.querySelector('#colors').value}`, {id: _id, color: productArticleElt.querySelector('#colors').value, quantity: parseInt(productArticleElt.querySelector('#quantity').value, 10)});
+                cart.set(`${_id}_${colorsElt.value}`, {id: _id, color: colorsElt.value, quantity: parseInt(quantityElt.value, 10)});
                 console.log('Map avant LS: ');
                 console.log(cart);
+                alert('Article(s) ajouté(s) au panier !');
             }
             localStorage.setItem('products', JSON.stringify(Object.fromEntries(cart)));
             console.log('Object dans LS: ' + JSON.stringify(Object.fromEntries(cart)));
-
-            alert('Article(s) ajouté(s) au panier !');
         }
         else {
             alert('Veuillez choisir une couleur et une quantité valide.')
