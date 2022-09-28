@@ -45,15 +45,18 @@ console.log(cart);
 
 requests();
 
-setTimeout(displayPrice, 100*cart.size);  // Besoin de retarder l'affichage le temps que la fonction asynchrone finisse son travail
+// Besoin de retarder l'affichage le temps que la fonction asynchrone finisse son travail
+setTimeout(displayPrice, 100*cart.size);
 setTimeout(setEvents, 100*cart.size);
 
+// Appel de l'API pour chacun des produits du panier
 async function requests() {
     for (value of cart) {  // Toujours utiliser for of pour boucler sur des fonctions asynchrones JAMAIS FOREACH !!!!!
         await getInfos(value);
     }
 }
 
+// Obtention à partir du LS les informations importantes à l'identification du produit et au calcul de son prix total
 async function getInfos(value) {
     const id = value[1].id;
     const color = value[1].color;
@@ -62,12 +65,14 @@ async function getInfos(value) {
     await getProduct(id, color, quantity);
 }
 
+// Appel de l'API afin d'obtenir le produit désigné par son id
 async function getProduct(id, color, quantity) {
     const resp = await fetch(`http://localhost:3000/api/products/${id}`);
     const respData = await resp.json();
     showProduct(respData, id, color, quantity);
 }
 
+// Affichage des informations du produit
 function showProduct(product, id, color, quantity) {
     const { name, price, imageUrl, altTxt } = product;
     const realPrice = price / 100;
@@ -103,6 +108,7 @@ function showProduct(product, id, color, quantity) {
     cartElt.insertBefore(productSectionElt, cartPriceElt);
 }
 
+// Permet de traduire le nom des couleurs en français
 function defineFrenchColor(color) {
     switch(color) {
         case 'Blue':
@@ -138,12 +144,14 @@ function defineFrenchColor(color) {
     }
 }
 
+// Affiche à l'endroit approprié la quantité d'articles et le montant total de notre panier
 function displayPrice() {
     totalQuantityElt.innerHTML = totalQuantity;
     totalPrice = totalPrice.toFixed(2);
     totalPriceElt.innerHTML = totalPrice;
 }
 
+// Se charge d'appeler l'intégralité des fonctions qui concernent les events
 function setEvents() {
     setNewQuantityEvent();
     setDeleteEvent();
@@ -153,6 +161,7 @@ function setEvents() {
     setSubmitEvent();
 }
 
+// Se charge de gérer l'event qui se déclenche lors de la modification de la quantité d'un article dans le panier
 function setNewQuantityEvent() {
     const allQuantitySelectorElt = productSectionElt.querySelectorAll('.itemQuantity');
     allQuantitySelectorElt.forEach((quantitySelectorElt) => {
@@ -164,6 +173,7 @@ function setNewQuantityEvent() {
     });
 }
 
+// Se charge de gérer l'évent qui se déclenche lors de la suppression d'un article dans le panier
 function setDeleteEvent() {
     const allDeleteSelectorElt = productSectionElt.querySelectorAll('.deleteItem');
     allDeleteSelectorElt.forEach((deleteSelectorElt) => {
@@ -176,9 +186,9 @@ function setDeleteEvent() {
     });
 }
 
+// Permet lors de la modification du panier, de faire évoluer le local storage de manière à ce qu'il reste représentatif du nouveau contenu
 function modifyLS(SelectorElt, e, suppress) {
     if(!suppress) {
-        console.log('jentre');
         const identifier = getIdentifier(SelectorElt);
         cart.get(identifier).quantity = parseInt(e.target.value, 10);
         console.log(cart);
@@ -192,6 +202,7 @@ function modifyLS(SelectorElt, e, suppress) {
     }
 }
 
+// Permet de repérer le produit en cours de modification ou de suppression
 function getIdentifier(quantitySelector) {
     const id = quantitySelector.closest('article').attributes[1].value;
     const color = quantitySelector.closest('article').attributes[2].value;
@@ -199,6 +210,7 @@ function getIdentifier(quantitySelector) {
     return identifier;
 }
 
+// Si le LS est mis à jour, recalcule le montant total et la quantité d'articles
 function recalculateTotal(e) {
     let price;
     
@@ -226,6 +238,7 @@ function recalculateTotal(e) {
     } 
 }
 
+// Gère les events liés à l'entrée utilisateur au niveau du formulaire de contact
 function setInputEvent(id, pattern) {
     const elt = document.getElementById(id);
     
@@ -257,15 +270,20 @@ function setInputEvent(id, pattern) {
     });
 }
 
+// Gère la validation du formulaire et envoie les données de contact et de numéro de commande à l'API puis redirige vers la page de confirmation
 function setSubmitEvent() {
     let order;
-    let productsId = [];
-    for(value of cart) {
-        productsId.push(value[1].id);
-    }
+    
     submitElt.addEventListener('click', (e) => {
+        let productsId = [];
+
         e.preventDefault();
-        if(valid.size == 5) {
+
+        for(value of cart) {
+            productsId.push(value[1].id);
+        }
+        
+        if((valid.size == 5) && (productsId.length != 0)) {
             order = {
                 contact: {
                     firstName: document.getElementById('firstName').value,
@@ -276,7 +294,6 @@ function setSubmitEvent() {
                 },
                 products: productsId
             };
-            console.log(productsId);
 
             fetch("http://localhost:3000/api/products/order", {
                 method: "POST",
@@ -294,7 +311,12 @@ function setSubmitEvent() {
                 .catch(err => console.log(err))
         }
         else {
-            alert('Veuillez remplir correctement le formulaire !');
+            if(productsId.length == 0) {
+                alert('Panier vide !');
+            }
+            else {
+                alert('Veuillez remplir correctement le formulaire !');
+            }
         }
     })
 }
