@@ -75,7 +75,7 @@ async function getProduct(id, color, quantity) {
 // Affichage des informations du produit
 function showProduct(product, id, color, quantity) {
     const { name, price, imageUrl, altTxt } = product;
-    const realPrice = price / 100;
+    const realPrice = price;
     const frenchColor = defineFrenchColor(color);
 
     totalQuantity += quantity;
@@ -147,7 +147,6 @@ function defineFrenchColor(color) {
 // Affiche à l'endroit approprié la quantité d'articles et le montant total de notre panier
 function displayPrice() {
     totalQuantityElt.innerHTML = totalQuantity;
-    totalPrice = totalPrice.toFixed(2);
     totalPriceElt.innerHTML = totalPrice;
 }
 
@@ -233,7 +232,6 @@ function recalculateTotal(e) {
             index++;
         });
         totalQuantityElt.innerHTML = totalQuantity;
-        totalPrice = totalPrice.toFixed(2);
         totalPriceElt.innerHTML = totalPrice;
     } 
 }
